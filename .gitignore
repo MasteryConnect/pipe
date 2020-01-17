@@ -1,0 +1,4 @@
+*.log
+pipe
+vendor
+tmp
