@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"runtime"
 
-	"github.com/MasteryConnect/pipe/message"
+	"github.com/masteryconnect/pipe/message"
 )
 
 // List is a pipe/line producer/transformer to list the files/folders in a folder

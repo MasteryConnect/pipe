@@ -3,7 +3,7 @@ package x
 import (
 	"sync"
 
-	l "github.com/MasteryConnect/pipe/line"
+	l "github.com/masteryconnect/pipe/line"
 )
 
 // IfFunc is a func passed in to determin if the message should be used

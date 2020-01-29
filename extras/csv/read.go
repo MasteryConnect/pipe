@@ -7,7 +7,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/MasteryConnect/pipe/message"
+	"github.com/masteryconnect/pipe/message"
 )
 
 // ReadStream will read the string messages

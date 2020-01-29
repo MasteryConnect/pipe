@@ -3,7 +3,7 @@ package line_test
 import (
 	"fmt"
 
-	l "github.com/MasteryConnect/pipe/line"
+	l "github.com/masteryconnect/pipe/line"
 )
 
 func ExampleMany() {

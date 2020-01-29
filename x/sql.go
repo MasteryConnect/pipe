@@ -5,7 +5,7 @@ import (
 	"github.com/pkg/errors"
 	"strings"
 
-	"github.com/MasteryConnect/pipe/message"
+	"github.com/masteryconnect/pipe/message"
 )
 
 // SQL will transform a message to a query.

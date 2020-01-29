@@ -3,7 +3,7 @@ package json
 import (
 	"encoding/json"
 
-	"github.com/MasteryConnect/pipe/message"
+	"github.com/masteryconnect/pipe/message"
 )
 
 // To converts the message to a json message

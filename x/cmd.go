@@ -12,7 +12,7 @@ import (
 
 	"text/template"
 
-	"github.com/MasteryConnect/pipe/message"
+	"github.com/masteryconnect/pipe/message"
 )
 
 // Cmd will execute a system command

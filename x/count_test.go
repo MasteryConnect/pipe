@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"testing"
 
-	l "github.com/MasteryConnect/pipe/line"
-	"github.com/MasteryConnect/pipe/x"
+	l "github.com/masteryconnect/pipe/line"
+	"github.com/masteryconnect/pipe/x"
 )
 
 func ExampleCount() {

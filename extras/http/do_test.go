@@ -3,7 +3,7 @@ package http
 import (
 	"net/http"
 
-	l "github.com/MasteryConnect/pipe/line"
+	l "github.com/masteryconnect/pipe/line"
 )
 
 func ExampleDo_T() {

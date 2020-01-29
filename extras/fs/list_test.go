@@ -1,10 +1,10 @@
 package fs_test
 
 import (
-	"github.com/MasteryConnect/pipe/extras/fs"
-	"github.com/MasteryConnect/pipe/line"
-	"github.com/MasteryConnect/pipe/message"
-	"github.com/MasteryConnect/pipe/x"
+	"github.com/masteryconnect/pipe/extras/fs"
+	"github.com/masteryconnect/pipe/line"
+	"github.com/masteryconnect/pipe/message"
+	"github.com/masteryconnect/pipe/x"
 )
 
 func ExampleList_P() {

@@ -6,7 +6,7 @@ import (
 	"time"
 
 	// include the mysql sql driver
-	"github.com/MasteryConnect/pipe/message"
+	"github.com/masteryconnect/pipe/message"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
 )

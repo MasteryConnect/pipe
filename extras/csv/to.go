@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/csv"
 
-	"github.com/MasteryConnect/pipe/message"
+	"github.com/masteryconnect/pipe/message"
 	"github.com/pkg/errors"
 )
 

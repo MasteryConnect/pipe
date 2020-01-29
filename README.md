@@ -3,7 +3,7 @@
 ## getting the library
 
 ```bash
-go get github.com/MasteryConnect/pipe
+go get github.com/masteryconnect/pipe
 ```
 
 ## examples
@@ -16,8 +16,8 @@ Here is a basic script to count lines of input.
 package main
 
 import (
-  l "github.com/MasteryConnect/pipe/line"
-  "github.com/MasteryConnect/pipe/x"
+  l "github.com/masteryconnect/pipe/line"
+  "github.com/masteryconnect/pipe/x"
 )
 
 func main() {

@@ -1,4 +1,4 @@
-module github.com/MasteryConnect/pipe
+module github.com/masteryconnect/pipe
 
 go 1.13
 
