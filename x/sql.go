@@ -54,16 +54,16 @@ func (s SQL) SQLInsertFromBatch(v message.Batch) (*message.Query, error) {
 	vals := []interface{}{}
 	for _, m := range v {
 		switch v := m.(type) {
-		case *message.Record:
+		case message.Record:
 			if keys == nil {
-				keys = v.Keys
+				keys = v.GetKeys()
 			}
-			qs := make([]string, len(v.Vals))
+			qs := make([]string, len(v.GetVals()))
 			for i := range qs {
 				qs[i] = "?"
 			}
 			rowPlaceholders = append(rowPlaceholders, "("+strings.Join(qs, ",")+")")
-			vals = append(vals, v.Vals...)
+			vals = append(vals, v.GetVals()...)
 		default:
 			return nil, errors.Wrapf(ErrSQLTypeConversionError, "got type %T", m)
 		}

@@ -42,8 +42,8 @@ func (t To) T(in <-chan interface{}, out chan<- interface{}, errs chan<- error) 
 			t.csv.Write(v.Strings())
 		case map[string]interface{}:
 			if len(t.Header) > 0 {
-				rec := message.NewRecord().SetOrder(t.Header).FromMSI(v)
-				err = t.csv.Write(rec.Strings())
+				rec := message.NewRecordFromMSI(v).SetOrder(t.Header)
+				err = t.csv.Write(message.RecordToStrings(rec))
 			} else {
 				row := []string{}
 				for _, val := range v {
@@ -72,9 +72,7 @@ func (t To) T(in <-chan interface{}, out chan<- interface{}, errs chan<- error) 
 			if len(t.Header) > 0 {
 				sendRow(t.Header)
 			} else if r, ok := m.(message.Record); ok {
-				sendRow(r.Keys)
-			} else if r, ok := m.(*message.Record); ok {
-				sendRow(r.Keys)
+				sendRow(r.GetKeys())
 			}
 		}
 		sendRow(m)

@@ -1,4 +1,4 @@
-package mysql
+package sql
 
 import (
 	"fmt"
@@ -6,8 +6,8 @@ import (
 	"time"
 
 	// include the mysql sql driver
-	"github.com/masteryconnect/pipe/message"
 	"github.com/jmoiron/sqlx"
+	"github.com/masteryconnect/pipe/message"
 	"github.com/pkg/errors"
 )
 
@@ -99,8 +99,7 @@ func (m Query) process(rows *sqlx.Rows, out chan<- interface{}, errs chan<- erro
 			}
 		}
 
-		rec := message.NewRecord().SetOrder(cols).FromMSI(row)
-		out <- rec
+		out <- message.NewRecordFromMSI(row).SetOrder(cols)
 	}
 	return
 }

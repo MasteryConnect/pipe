@@ -1,4 +1,4 @@
-package mysql
+package sql
 
 import (
 	"bytes"
@@ -9,7 +9,7 @@ import (
 
 	// include the mysql sql driver
 	_ "github.com/go-sql-driver/mysql"
-	sql "github.com/jmoiron/sqlx"
+	"github.com/jmoiron/sqlx"
 )
 
 // Get gets records from a query or table
@@ -124,9 +124,9 @@ func (m *Get) runQuery(sqlQuery string, inMsg interface{}, out chan<- interface{
 	}
 }
 
-func (m *Get) query(id interface{}, sqlQuery string, errs chan<- error) *sql.Rows {
+func (m *Get) query(id interface{}, sqlQuery string, errs chan<- error) *sqlx.Rows {
 	var err error
-	var rows *sql.Rows
+	var rows *sqlx.Rows
 	if sqlQuery != "" {
 		rows, err = m.DB.Queryx(sqlQuery)
 	} else if m.Table != "" {
@@ -146,7 +146,7 @@ func (m *Get) query(id interface{}, sqlQuery string, errs chan<- error) *sql.Row
 	return rows
 }
 
-func (m *Get) process(rows *sql.Rows, out chan<- interface{}, errs chan<- error) (cnt int, lastID interface{}) {
+func (m *Get) process(rows *sqlx.Rows, out chan<- interface{}, errs chan<- error) (cnt int, lastID interface{}) {
 	cnt = 0
 	colTypes := make(map[string]string)
 

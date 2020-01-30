@@ -13,9 +13,7 @@ func To(msg interface{}) (interface{}, error) {
 
 	switch v := msg.(type) {
 	case message.Record:
-		b, err = json.Marshal(v.MSI())
-	case *message.Record:
-		b, err = json.Marshal(v.MSI())
+		b, err = json.Marshal(message.RecordToMSI(v))
 	default:
 		b, err = json.Marshal(msg)
 	}

@@ -1,7 +1,7 @@
-package mysql
+package sql
 
 import (
-	"database/sql"
+	dbsql "database/sql"
 	"fmt"
 
 	"github.com/masteryconnect/pipe/message"
@@ -40,7 +40,7 @@ func (m Exec) T(in <-chan interface{}, out chan<- interface{}, errs chan<- error
 			errs <- err
 		}
 		if result != nil {
-			out <- message.SQLResult{Result: result.(sql.Result)}
+			out <- message.SQLResult{Result: result.(dbsql.Result)}
 		}
 	}
 }

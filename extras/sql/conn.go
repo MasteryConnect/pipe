@@ -1,16 +1,18 @@
-package mysql
+package sql
 
 import (
 	"github.com/jmoiron/sqlx"
 	// include the mysql sql driver
 	_ "github.com/go-sql-driver/mysql"
+	_ "github.com/lib/pq"
 )
 
 // Conn is a wrapper around a mysql connection to handle
 // creating the connection and shutting it down.
 // This allows you to just set a DSN and this will handle connecting to it.
 type Conn struct {
-	Dsn       string // connection string (required)
+	DSN       string // connection string (required)
+	Driver    string // used to make a new connection if DB is nil
 	DB        *sqlx.DB
 	customDB  bool
 	connected bool // prevent multiple Open calls
@@ -24,7 +26,7 @@ func (m *Conn) Open() error {
 
 	var err error
 	if m.DB == nil {
-		m.DB, err = sqlx.Open("mysql", m.Dsn)
+		m.DB, err = sqlx.Open(m.Driver, m.DSN)
 		if err != nil {
 			return err
 		}
