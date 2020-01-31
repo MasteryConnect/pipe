@@ -4,7 +4,7 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/masteryconnect/pipe/x"
+	"github.com/MasteryConnect/pipe/x"
 )
 
 func TestTee(t *testing.T) {

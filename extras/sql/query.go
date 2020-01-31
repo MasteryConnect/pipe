@@ -1,14 +1,12 @@
 package sql
 
 import (
-	"fmt"
 	"strconv"
 	"time"
 
 	// include the mysql sql driver
+	"github.com/MasteryConnect/pipe/message"
 	"github.com/jmoiron/sqlx"
-	"github.com/masteryconnect/pipe/message"
-	"github.com/pkg/errors"
 )
 
 const (
@@ -16,11 +14,11 @@ const (
 	MysqlDatetimeFormat = "2006-01-02 15:04:05"
 )
 
-// Query gets records from a query or table
-type Query Conn
+// Querier gets records from a query or table
+type Querier Conn
 
 // T will take in records and use them in a sql query.
-func (m Query) T(in <-chan interface{}, out chan<- interface{}, errs chan<- error) {
+func (m Querier) T(in <-chan interface{}, out chan<- interface{}, errs chan<- error) {
 	c := Conn(m)
 	err := c.Open()
 	if err != nil {
@@ -33,35 +31,41 @@ func (m Query) T(in <-chan interface{}, out chan<- interface{}, errs chan<- erro
 		}
 	}()
 
-	db := Query(c)
+	db := Querier(c)
 
 	for msg := range in {
-		rows, err := db.query(msg)
+		rows, err := db.Run(msg)
 		if err != nil {
 			errs <- err
 		} else {
-			m.process(rows.(*sqlx.Rows), out, errs)
+			extractRows(rows.(*sqlx.Rows), out, errs)
 		}
 	}
 }
 
-// query implements the InlineFunc interface
-func (m Query) query(msg interface{}) (interface{}, error) {
+// Run actually does the query again the database and
+// implements the InlineFunc interface.
+func (m Querier) Run(msg interface{}) (interface{}, error) {
 	switch v := msg.(type) {
 	case message.SQLGetter:
 		if a, ok := v.(message.ArgsGetter); ok && a.GetArgs() != nil {
 			return m.DB.Queryx(v.GetSQL(), a.GetArgs()...)
 		}
 		return m.DB.Queryx(v.GetSQL())
-	case string:
-		return m.DB.Queryx(v)
-	case fmt.Stringer:
-		return m.DB.Queryx(v.String())
+	default:
+		return m.DB.Queryx(message.String(v))
 	}
-	return nil, errors.Wrapf(ErrInvalidSQLQueryType, "got unknown type %T", msg)
 }
 
-func (m Query) process(rows *sqlx.Rows, out chan<- interface{}, errs chan<- error) (cnt int) {
+// UnpackRows is a transformer (Tfunc) that iterates over the sqlx.Rows and
+// sends downstream each row as an OrderedRecord.
+func UnpackRows(in <-chan interface{}, out chan<- interface{}, errs chan<- error) {
+	for m := range in {
+		extractRows(m.(*sqlx.Rows), out, errs)
+	}
+}
+
+func extractRows(rows *sqlx.Rows, out chan<- interface{}, errs chan<- error) (cnt int) {
 	cnt = 0
 	colTypes := make(map[string]string)
 
@@ -95,7 +99,7 @@ func (m Query) process(rows *sqlx.Rows, out chan<- interface{}, errs chan<- erro
 			} else if t, ok := v.(time.Time); ok {
 				row[k] = t
 			} else if b, ok := v.([]byte); ok {
-				row[k] = m.castByColumnType(string(b), colTypes[k])
+				row[k] = castByColumnType(string(b), colTypes[k])
 			}
 		}
 
@@ -104,7 +108,7 @@ func (m Query) process(rows *sqlx.Rows, out chan<- interface{}, errs chan<- erro
 	return
 }
 
-func (m Query) castByColumnType(input, columnType string) (output interface{}) {
+func castByColumnType(input, columnType string) (output interface{}) {
 	switch columnType {
 	case "INT", "MEDIUMINT":
 		ival, err := strconv.ParseInt(input, 10, 32)

@@ -3,7 +3,7 @@ package message_test
 import (
 	"testing"
 
-	"github.com/masteryconnect/pipe/message"
+	"github.com/MasteryConnect/pipe/message"
 )
 
 func TestBasicRecord_Set(t *testing.T) {

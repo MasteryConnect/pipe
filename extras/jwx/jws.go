@@ -1,8 +1,8 @@
 package jwx
 
 import (
-	l "github.com/masteryconnect/pipe/line"
-	"github.com/masteryconnect/pipe/message"
+	l "github.com/MasteryConnect/pipe/line"
+	"github.com/MasteryConnect/pipe/message"
 
 	"github.com/lestrrat-go/jwx/jwa"
 	"github.com/lestrrat-go/jwx/jws"

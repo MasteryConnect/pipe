@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/masteryconnect/pipe/message"
+	"github.com/MasteryConnect/pipe/message"
 )
 
 func ExampleEvent() {

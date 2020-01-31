@@ -3,7 +3,7 @@ package x
 import (
 	"sync"
 
-	"github.com/masteryconnect/pipe/line"
+	"github.com/MasteryConnect/pipe/line"
 )
 
 // Tee splits a stream into multiple streams and merges the results

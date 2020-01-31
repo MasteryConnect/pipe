@@ -4,7 +4,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/masteryconnect/pipe/message"
+	"github.com/MasteryConnect/pipe/message"
 )
 
 // GroupByFunc is the function that is used to get the group names

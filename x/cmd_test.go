@@ -1,8 +1,8 @@
 package x_test
 
 import (
-	l "github.com/masteryconnect/pipe/line"
-	"github.com/masteryconnect/pipe/x"
+	l "github.com/MasteryConnect/pipe/line"
+	"github.com/MasteryConnect/pipe/x"
 )
 
 func ExampleCmd_T() {

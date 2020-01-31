@@ -3,7 +3,7 @@ package http
 import (
 	"net/http"
 
-	"github.com/masteryconnect/pipe/message"
+	"github.com/MasteryConnect/pipe/message"
 )
 
 // Do will execute incoming http.Request message.

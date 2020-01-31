@@ -1,9 +1,9 @@
 package sql_test
 
 import (
-	"github.com/masteryconnect/pipe/extras/sql"
-	"github.com/masteryconnect/pipe/line"
-	"github.com/masteryconnect/pipe/message"
+	"github.com/MasteryConnect/pipe/extras/sql"
+	"github.com/MasteryConnect/pipe/line"
+	"github.com/MasteryConnect/pipe/message"
 )
 
 func ExampleExec() {

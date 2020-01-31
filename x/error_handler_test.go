@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	l "github.com/masteryconnect/pipe/line"
-	"github.com/masteryconnect/pipe/x"
+	l "github.com/MasteryConnect/pipe/line"
+	"github.com/MasteryConnect/pipe/x"
 )
 
 func TestErrorHandler(t *testing.T) {

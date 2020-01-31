@@ -4,7 +4,7 @@ import (
 	"testing"
 	"bytes"
 
-	"github.com/masteryconnect/pipe/message"
+	"github.com/MasteryConnect/pipe/message"
 )
 
 type wrap struct {
