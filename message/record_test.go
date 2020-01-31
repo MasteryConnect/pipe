@@ -41,3 +41,32 @@ func TestRecordToStrings(t *testing.T) {
 		t.Errorf("want %v got %v", want, message.RecordToStrings(r))
 	}
 }
+
+func TestGetNonIDKeys(t *testing.T) {
+	r := message.NewIDRecord()
+	r.Set("id", 42)
+	r.Set("name", "foo")
+	r.Set("sub", map[string]string{"foo": "bar"})
+	r.Set("struct", struct{ id int }{42})
+
+	if len(r.GetIDKeys()) != 0 {
+		t.Errorf("want %v got %v", 0, len(r.GetIDKeys()))
+	}
+
+	want := []string{"id", "name", "sub", "struct"}
+	if !reflect.DeepEqual(want, message.GetNonIDKeys(r)) {
+		t.Errorf("want %v got %v", want, message.GetNonIDKeys(r))
+	}
+
+	r.(*message.BasicIDRecord).IDKeys = []string{"id"}
+
+	want = []string{"id"}
+	if !reflect.DeepEqual(want, r.GetIDKeys()) {
+		t.Errorf("want %v got %v", want, r.GetIDKeys())
+	}
+
+	want = []string{"name", "sub", "struct"}
+	if !reflect.DeepEqual(want, message.GetNonIDKeys(r)) {
+		t.Errorf("want %v got %v", want, message.GetNonIDKeys(r))
+	}
+}

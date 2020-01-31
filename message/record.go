@@ -20,6 +20,15 @@ func NewRecord() OrderedRecord {
 	return NewBasicRecord()
 }
 
+// NewIDRecord created a record that implements IDRecord and as such
+// is identifiable // with some of value or combination of values from the record.
+func NewIDRecord(IDKeys ...string) IDRecord {
+	return &BasicIDRecord{
+		Record: NewRecord(),
+		IDKeys: IDKeys,
+	}
+}
+
 // NewRecordFromMSI creates a *Record from a map[string]interface{}
 // This is a convenience function to combine new and FromMSI
 func NewRecordFromMSI(msi map[string]interface{}) OrderedRecord {
@@ -65,4 +74,25 @@ type IDRecord interface {
 	Record
 	GetIDKeys() []string
 	GetIDVals() []interface{}
+}
+
+// GetNonIDKeys gets all the keys for the record that aren't a part of the ID.
+// This can be useful when building SQL queries for a record.
+func GetNonIDKeys(r IDRecord) []string {
+	// get the non-ID keys
+	idkeys := r.GetIDKeys()
+	var nonIDKeys []string
+	for _, key := range r.GetKeys() {
+		exclude := false
+		for _, idkey := range idkeys {
+			if key == idkey {
+				exclude = true
+				break // skip this col as it exists in the id
+			}
+		}
+		if !exclude {
+			nonIDKeys = append(nonIDKeys, key)
+		}
+	}
+	return nonIDKeys
 }

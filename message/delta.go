@@ -62,8 +62,25 @@ func (d InsertDelta) GetSQL() string {
 
 // GetSQL implements the SQLGetter interface
 func (d UpdateDelta) GetSQL() string {
-	cols := strings.Join(d.GetKeys(), "=? AND ") + "=?"
-	id := strings.Join(d.GetIDKeys(), "=? AND ") + "=?"
+	idkeys := d.GetIDKeys()
+	id := strings.Join(idkeys, "=? AND ") + "=?"
+	// get the cols without the id
+	var writeCols []string
+
+	for _, col := range d.GetKeys() {
+		exclude := false
+		for _, idkey := range idkeys {
+			if col == idkey {
+				exclude = true
+				break // skip this col as it exists in the id
+			}
+		}
+		if !exclude {
+			writeCols = append(writeCols, col)
+		}
+	}
+	cols := strings.Join(writeCols, "=?, ") + "=?"
+
 	return fmt.Sprintf(`UPDATE %s SET %s WHERE %s`, d.Table, cols, id)
 }
 
@@ -79,8 +96,19 @@ func (d InsertDelta) GetArgs() []interface{} {
 }
 
 // GetArgs implements the ArgGetter interface
+// and returns the args for the query excluding the
+// args related to the ID keys.
 func (d UpdateDelta) GetArgs() []interface{} {
-	return append(d.GetVals(), d.GetIDVals())
+	// get the non-ID keys
+	vals := []interface{}{}
+	for _, key := range GetNonIDKeys(d) {
+		if val, ok := d.Get(key); ok {
+			vals = append(vals, val)
+		} else {
+			return nil // bail because we didn't find a value
+		}
+	}
+	return vals
 }
 
 // GetArgs implements the ArgGetter interface
