@@ -1,45 +1,43 @@
 package message_test
 
 import (
+	"fmt"
+	"reflect"
 	"testing"
 
 	"github.com/masteryconnect/pipe/message"
 )
 
-func TestRecord_Set(t *testing.T) {
-	r := message.NewRecord()
-
-	if len(r.GetKeys()) != 0 {
-		t.Errorf("want no keys got %d", len(r.GetKeys()))
+func TestRecordToMSI(t *testing.T) {
+	msi1 := map[string]interface{}{
+		"id":     42,
+		"name":   "foo",
+		"sub":    map[string]string{"foo": "bar"},
+		"struct": struct{ id int }{42},
 	}
 
-	r.Set("foo", "bar")
+	r := message.NewRecordFromMSI(msi1)
 
-	if len(r.GetKeys()) != 1 {
-		t.Errorf("want 1 key got %d", len(r.GetKeys()))
+	msi2 := message.RecordToMSI(r)
+
+	if !reflect.DeepEqual(msi1, msi2) {
+		t.Errorf("maps not the same: %+v != %+v", msi1, msi2)
 	}
-	if len(r.GetVals()) != 1 {
-		t.Errorf("want 1 val got %d", len(r.GetVals()))
-	}
-	if r.GetKeys()[0] != "foo" {
-		t.Errorf("want %s key got %s", "foo", r.GetKeys()[0])
-	}
-	if r.GetVals()[0] != "bar" {
-		t.Errorf("want %s key got %s", "bar", r.GetKeys()[0])
+}
+
+func TestRecordToStrings(t *testing.T) {
+	msi1 := map[string]interface{}{
+		"id":     42,
+		"name":   "foo",
+		"sub":    map[string]string{"foo": "bar"},
+		"struct": struct{ id int }{42},
 	}
 
-	r.Set("baz", 42)
+	r := message.NewRecordFromMSI(msi1).
+		SetKeyOrder("name", "sub", "struct", "id")
 
-	if len(r.GetKeys()) != 2 {
-		t.Errorf("want 2 keys got %d", len(r.GetKeys()))
-	}
-	if len(r.GetVals()) != 2 {
-		t.Errorf("want 2 vals got %d", len(r.GetVals()))
-	}
-	if r.GetKeys()[1] != "baz" {
-		t.Errorf("want %s key got %s", "foo", r.GetKeys()[1])
-	}
-	if r.GetVals()[1] != 42 {
-		t.Errorf("want %s key got %s", "bar", r.GetKeys()[1])
+	want := []string{"foo", fmt.Sprint(msi1["sub"]), fmt.Sprint(msi1["struct"]), "42"}
+	if !reflect.DeepEqual(want, message.RecordToStrings(r)) {
+		t.Errorf("want %v got %v", want, message.RecordToStrings(r))
 	}
 }

@@ -42,7 +42,7 @@ func (t To) T(in <-chan interface{}, out chan<- interface{}, errs chan<- error) 
 			t.csv.Write(v.Strings())
 		case map[string]interface{}:
 			if len(t.Header) > 0 {
-				rec := message.NewRecordFromMSI(v).SetOrder(t.Header)
+				rec := message.NewRecordFromMSI(v).SetKeyOrder(t.Header...)
 				err = t.csv.Write(message.RecordToStrings(rec))
 			} else {
 				row := []string{}

@@ -99,7 +99,7 @@ func (m Query) process(rows *sqlx.Rows, out chan<- interface{}, errs chan<- erro
 			}
 		}
 
-		out <- message.NewRecordFromMSI(row).SetOrder(cols)
+		out <- message.NewRecordFromMSI(row).SetKeyOrder(cols...)
 	}
 	return
 }

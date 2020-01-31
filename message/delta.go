@@ -5,18 +5,6 @@ import (
 	"strings"
 )
 
-// DeltaType is the type of mutation for the sql to take
-type DeltaType uint8
-
-const (
-	// Insert is for an INSERT SQL statement
-	Insert = iota + 1
-	// Update is for an UPDATE SQL statement
-	Update
-	// Delete is for a DELETE SQL statement
-	Delete
-)
-
 // InsertDelta is the delta type for inserts
 type InsertDelta struct {
 	Record
