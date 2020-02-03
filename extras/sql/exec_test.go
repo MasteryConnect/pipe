@@ -20,7 +20,7 @@ func ExampleExec() {
 		query.Args = append(query.Args, "bar")
 		out <- query
 
-		// using message.Delta
+		// using delta messages
 		record := message.NewRecordFromMSI(map[string]interface{}{"name": "bar"})
 		delta := message.InsertDelta{Table: "foo", Record: record}
 		out <- delta

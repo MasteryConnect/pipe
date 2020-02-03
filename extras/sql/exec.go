@@ -22,14 +22,13 @@ func (m Exec) T(in <-chan interface{}, out chan<- interface{}, errs chan<- error
 	c := Conn(m)
 	if err := c.Open(); err != nil {
 		errs <- err
-	} else {
-		defer func() {
-			err := c.Close()
-			if err != nil {
-				errs <- err
-			}
-		}()
 	}
+	defer func() {
+		err := c.Close()
+		if err != nil {
+			errs <- err
+		}
+	}()
 
 	db := Exec(c) // use c to call I() on to keep the db connection
 
@@ -49,17 +48,15 @@ func (m Exec) T(in <-chan interface{}, out chan<- interface{}, errs chan<- error
 // if the incoming message is a mysql.Query and has the context set.
 func (m Exec) I(msg interface{}) (interface{}, error) {
 	switch v := msg.(type) {
-	case message.SQLGetter:
-		if a, ok := msg.(message.ArgsGetter); ok {
-			if c, cok := msg.(message.ContextGetter); cok {
-				ctx := c.GetContext()
-				if ctx != nil {
-					return m.DB.ExecContext(ctx, v.GetSQL(), a.GetArgs()...)
-				}
+	case message.ToSQLer:
+		sql, args := v.ToSQL()
+		if c, cok := msg.(message.ContextGetter); cok {
+			ctx := c.GetContext()
+			if ctx != nil {
+				return m.DB.ExecContext(ctx, sql, args...)
 			}
-			return m.DB.Exec(v.GetSQL(), a.GetArgs()...)
 		}
-		return m.DB.Exec(v.GetSQL())
+		return m.DB.Exec(sql, args...)
 	case string:
 		return m.DB.Exec(v)
 	case fmt.Stringer:

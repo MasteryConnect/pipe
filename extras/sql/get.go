@@ -7,8 +7,6 @@ import (
 	"text/template"
 	"time"
 
-	// include the mysql sql driver
-	_ "github.com/go-sql-driver/mysql"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -23,7 +21,7 @@ type Get struct {
 	BodyCol  string // the column to put as the body of the message (blank is all as json)
 }
 
-// P starts sourcing the data for the pipeline from a mysql table
+// P starts sourcing the data for the pipeline from a table
 func (m Get) P(out chan<- interface{}, errs chan<- error) {
 	err := m.Open()
 	if err != nil {
@@ -60,7 +58,7 @@ func (m Get) T(in <-chan interface{}, out chan<- interface{}, errs chan<- error)
 		}
 	}()
 
-	sqlTmpl, err := template.New("mysql_get-transform").Parse(m.SQL)
+	sqlTmpl, err := template.New("sql_get-transform").Parse(m.SQL)
 	if err != nil {
 		errs <- fmt.Errorf("Error parsing the sql template: %v", err)
 	}

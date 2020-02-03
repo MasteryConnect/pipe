@@ -7,14 +7,9 @@ import (
 	"strings"
 )
 
-// SQLGetter defines the SQL func to extract the SQL from a message.
-type SQLGetter interface {
-	GetSQL() string
-}
-
-// ArgsGetter defines a func to extract the SQL related args from a message.
-type ArgsGetter interface {
-	GetArgs() []interface{}
+// ToSQLer defines the SQL func to extract the SQL from a message.
+type ToSQLer interface {
+	ToSQL() (string, []interface{})
 }
 
 // Query is an SQL query that has the arguments in a sparate slice.
@@ -52,12 +47,7 @@ func (q Query) GetContext() context.Context {
 	return q.Context
 }
 
-// GetSQL implements the message.SQLGetter interface
-func (q Query) GetSQL() string {
-	return q.SQL
-}
-
-// GetArgs implements the message.ArgsGetter interface
-func (q Query) GetArgs() []interface{} {
-	return q.Args
+// ToSQL implements the message.SQLGetter interface
+func (q Query) ToSQL() (string, []interface{}) {
+	return q.SQL, q.Args
 }

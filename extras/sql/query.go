@@ -4,9 +4,9 @@ import (
 	"strconv"
 	"time"
 
-	// include the mysql sql driver
 	"github.com/MasteryConnect/pipe/message"
 	"github.com/jmoiron/sqlx"
+	"github.com/pkg/errors"
 )
 
 const (
@@ -14,14 +14,13 @@ const (
 	MysqlDatetimeFormat = "2006-01-02 15:04:05"
 )
 
-// Querier gets records from a query or table
-type Querier Conn
+// Query runs an SQL query on a db connection
+type Query Conn
 
 // T will take in records and use them in a sql query.
-func (m Querier) T(in <-chan interface{}, out chan<- interface{}, errs chan<- error) {
+func (m Query) T(in <-chan interface{}, out chan<- interface{}, errs chan<- error) {
 	c := Conn(m)
-	err := c.Open()
-	if err != nil {
+	if err := c.Open(); err != nil {
 		errs <- err
 	}
 	defer func() {
@@ -31,51 +30,59 @@ func (m Querier) T(in <-chan interface{}, out chan<- interface{}, errs chan<- er
 		}
 	}()
 
-	db := Querier(c)
+	db := Query(c)
 
 	for msg := range in {
-		rows, err := db.Run(msg)
+		results, err := db.I(msg)
 		if err != nil {
 			errs <- err
 		} else {
-			extractRows(rows.(*sqlx.Rows), out, errs)
+			rows := results.(*sqlx.Rows)
+			ExtractRecordsFromRows(rows, func(row message.OrderedRecord, err error) error {
+				if err != nil {
+					errs <- err
+				} else {
+					out <- row
+				}
+				return nil // only return an error here if we want the iterating to stop
+			})
+			rows.Close()
 		}
 	}
 }
 
-// Run actually does the query again the database and
-// implements the InlineFunc interface.
-func (m Querier) Run(msg interface{}) (interface{}, error) {
+// I actually does the query again the database and
+// implements the InlineTfunc interface.
+func (m Query) I(msg interface{}) (interface{}, error) {
 	switch v := msg.(type) {
-	case message.SQLGetter:
-		if a, ok := v.(message.ArgsGetter); ok && a.GetArgs() != nil {
-			return m.DB.Queryx(v.GetSQL(), a.GetArgs()...)
-		}
-		return m.DB.Queryx(v.GetSQL())
+	case message.ToSQLer:
+		sql, args := v.ToSQL()
+		return m.DB.Queryx(sql, args...)
 	default:
 		return m.DB.Queryx(message.String(v))
 	}
 }
 
-// UnpackRows is a transformer (Tfunc) that iterates over the sqlx.Rows and
-// sends downstream each row as an OrderedRecord.
-func UnpackRows(in <-chan interface{}, out chan<- interface{}, errs chan<- error) {
-	for m := range in {
-		extractRows(m.(*sqlx.Rows), out, errs)
-	}
-}
+// ErrStopExtract is the error to be used by a rowHandler to indicate that
+// the iterating over the rows results should not continue.
+var ErrStopExtract = errors.New("stop iterating over the *sqlx.Rows")
 
-func extractRows(rows *sqlx.Rows, out chan<- interface{}, errs chan<- error) (cnt int) {
-	cnt = 0
+// ExtractRecordsFromRows iterates over the *sqlx.Rows and calls the handler for each
+// or error if something went wrong. The row handler can return it's own error
+// in which case the iterating still stop. If the error is not the ErrStopExtract
+// error, then it will be pass on through as the error of the overall func call.
+// Keep in mind you will need to make sure the rows passed in are close elsewhere.
+// (Ex: rows.Close() ) This func will not close the rows.
+func ExtractRecordsFromRows(rows *sqlx.Rows, rowHandler func(message.OrderedRecord, error) error) error {
 	colTypes := make(map[string]string)
 
 	cols, err := rows.Columns()
 	if err != nil {
-		errs <- err
+		return err
 	}
 	types, err := rows.ColumnTypes()
 	if err != nil {
-		errs <- err
+		return err
 	}
 
 	// fill a map of the types by column name
@@ -86,11 +93,18 @@ func extractRows(rows *sqlx.Rows, out chan<- interface{}, errs chan<- error) (cn
 	var row map[string]interface{}
 	for rows.Next() {
 		row = make(map[string]interface{})
-		cnt++
 
 		err = rows.MapScan(row)
 		if err != nil {
-			errs <- err
+			err = rowHandler(nil, err)
+			if err != nil {
+				if err == ErrStopExtract {
+					break // stop but don't pass the "Stop" error up
+				} else {
+					return err // stop and pass the error on up
+				}
+			}
+			continue
 		}
 
 		for k, v := range row {
@@ -103,9 +117,16 @@ func extractRows(rows *sqlx.Rows, out chan<- interface{}, errs chan<- error) (cn
 			}
 		}
 
-		out <- message.NewRecordFromMSI(row).SetKeyOrder(cols...)
+		err = rowHandler(message.NewRecordFromMSI(row).SetKeyOrder(cols...), nil)
+		if err != nil {
+			if err == ErrStopExtract {
+				break // stop but don't pass the "Stop" error up
+			} else {
+				return err // stop and pass the error on up
+			}
+		}
 	}
-	return
+	return nil
 }
 
 func castByColumnType(input, columnType string) (output interface{}) {
