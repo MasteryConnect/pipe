@@ -18,6 +18,19 @@ type Query struct {
 	SQL     string
 	Args    []interface{}
 	Context context.Context
+
+	// some drivers prefer the numbered args ($1,$2...) instead of ? for placeholders
+	NumberArgs bool
+}
+
+// NewQuery is a constructor for a Query struct. It can support both the ?
+// and the $1 format of placeholder for the args.
+func NewQuery(sql string, args []interface{}, numbereArgs bool) *Query {
+	return &Query{
+		SQL:        sql,
+		Args:       args,
+		NumberArgs: numbereArgs,
+	}
 }
 
 // SQLResult wraps the sql.Result and adds a String func for convenient output of the results.
@@ -37,9 +50,13 @@ func (r SQLResult) String() string {
 func (q Query) String() string {
 	escaped := make([]interface{}, len(q.Args))
 	for i, v := range q.Args {
-		escaped[i] = strings.Replace(fmt.Sprintf("%v", v), "'", "''", -1)
+		if v == nil {
+			escaped[i] = "NULL"
+		} else {
+			escaped[i] = "'" + strings.Replace(fmt.Sprintf("%v", v), "'", "''", -1) + "'"
+		}
 	}
-	return fmt.Sprintf(strings.Replace(q.SQL, "?", "'%v'", -1), escaped...)
+	return fmt.Sprintf(strings.Replace(q.SQL, "?", "%v", -1), escaped...)
 }
 
 // GetContext implements the message.ContextGetter interface
@@ -49,5 +66,14 @@ func (q Query) GetContext() context.Context {
 
 // ToSQL implements the message.SQLGetter interface
 func (q Query) ToSQL() (string, []interface{}) {
-	return q.SQL, q.Args
+	sql := q.SQL
+	if q.NumberArgs {
+		// convert to $1 arg placeholders
+		phs := []interface{}{}
+		for i := 1; i <= len(q.Args); i++ {
+			phs = append(phs, fmt.Sprintf("$%d", i))
+		}
+		sql = fmt.Sprintf(strings.Replace(q.SQL, "?", "%v", -1), phs...)
+	}
+	return sql, q.Args
 }

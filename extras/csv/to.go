@@ -30,6 +30,8 @@ func (t To) T(in <-chan interface{}, out chan<- interface{}, errs chan<- error) 
 		buf.Reset()
 
 		switch v := m.(type) {
+		case message.Record:
+			t.csv.Write(message.RecordToStrings(v))
 		case []string:
 			err = t.csv.Write(v)
 		case []interface{}:

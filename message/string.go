@@ -12,6 +12,9 @@ type Stringser interface {
 // String will extract a string from a message
 // one way or another.
 func String(m interface{}) string {
+	if m == nil {
+		return ""
+	}
 	switch v := m.(type) {
 	case string:
 		return v

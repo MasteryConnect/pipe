@@ -13,6 +13,8 @@ import (
 type SQL struct {
 	Table    string   // optional table to apply the mutation to
 	MaskKeys []string // useful for logging without sensitive values like passwords
+
+	NumberArgs bool // use $1 style placeholders for the resulting queries
 }
 
 // ErrSQLTypeConversionError is the error
@@ -73,5 +75,5 @@ func (s SQL) SQLInsertFromBatch(v message.Batch) (*message.Query, error) {
 		table,
 		strings.Join(keys, ","),
 		strings.Join(rowPlaceholders, ","),
-	), Args: vals}, nil
+	), Args: vals, NumberArgs: s.NumberArgs}, nil
 }
