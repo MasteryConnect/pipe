@@ -22,10 +22,10 @@ type StructRecord struct {
 var ErrNotAStruct = errors.New("not a struct")
 
 // NewStructRecord createa a new StructRecord. Thee tagName arg
-// is optional and will be used instead of the default 'db' tag.
+// is optional and will be used instead of the default field name.
 // While the tagName arg is a slice, only the [0] value is used.
 func NewStructRecord(strct interface{}, tagName ...string) (StructRecord, error) {
-	tag := "db"
+	tag := ""
 	if len(tagName) > 0 {
 		tag = tagName[0]
 	}
@@ -41,7 +41,10 @@ func NewStructRecord(strct interface{}, tagName ...string) (StructRecord, error)
 	tagsToName := map[string]string{}
 	for i := 0; i < t.NumField(); i++ {
 		f := t.Field(i)
-		tagVal := f.Tag.Get(tag)
+		tagVal := f.Name
+		if tag != "" {
+			tagVal = f.Tag.Get(tag)
+		}
 		tags = append(tags, tagVal)
 		tagsToName[tagVal] = f.Name
 	}
