@@ -98,7 +98,7 @@ func (r BasicRecord) String() string {
 
 // BasicIDRecord is a basic implementation of the IDRecord interface
 type BasicIDRecord struct {
-	Record
+	MutableRecord
 	IDKeys []string
 }
 
