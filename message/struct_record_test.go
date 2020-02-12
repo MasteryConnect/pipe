@@ -18,9 +18,15 @@ type testStructWithoutTags struct {
 }
 
 func TestStructRecord(t *testing.T) {
-	t.Run("with tags", func(t *testing.T) {
-		foo := testStructWithTags{1, "foo"}
+	foo := testStructWithTags{1, "foo"}
 
+	// make sure it works with pointers
+	_, err := message.NewStructRecord(&foo, "db")
+	if err != nil {
+		t.Error(err)
+	}
+
+	t.Run("with tags", func(t *testing.T) {
 		r, err := message.NewStructRecord(foo, "db")
 		if err != nil {
 			t.Error(err)
@@ -52,8 +58,6 @@ func TestStructRecord(t *testing.T) {
 	})
 
 	t.Run("without tags", func(t *testing.T) {
-		foo := testStructWithoutTags{1, "foo"}
-
 		r, err := message.NewStructRecord(foo)
 		if err != nil {
 			t.Error(err)

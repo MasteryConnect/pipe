@@ -32,6 +32,9 @@ func NewStructRecord(strct interface{}, tagName ...string) (StructRecord, error)
 
 	// ensure that it is a struct we are working with
 	t := reflect.TypeOf(strct)
+	if t.Kind() == reflect.Ptr {
+		t = t.Elem() // get the type the pointer points to
+	}
 	if t.Kind() != reflect.Struct {
 		return StructRecord{}, ErrNotAStruct
 	}
