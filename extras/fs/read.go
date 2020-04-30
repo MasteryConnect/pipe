@@ -9,7 +9,8 @@ import (
 
 // Read will read the messages from a file much like from stdin.
 type Read struct {
-	Path string
+	Path             string
+	MaxScanTokenSize int
 }
 
 // T is the Tfunc for a pipe/line.
@@ -33,6 +34,10 @@ func (r Read) run(path string, out chan<- interface{}, errs chan<- error) {
 	defer file.Close()
 
 	scanner := bufio.NewScanner(file)
+	if r.MaxScanTokenSize > 0 {
+		buf := make([]byte, 0, r.MaxScanTokenSize)
+		scanner.Buffer(buf, r.MaxScanTokenSize)
+	}
 	for scanner.Scan() {
 		msgSrc := scanner.Bytes()
 		msg := make([]byte, len(msgSrc))
