@@ -36,9 +36,3 @@ func Inline(it InlineTfunc) Tfunc {
 func I(it InlineTfunc) Tfunc {
 	return Inline(it)
 }
-
-// ForEach is a convenience wrapper around Inline
-// and actually makes more sense as the func name
-func ForEach(it InlineTfunc) Tfunc {
-	return Inline(it)
-}
