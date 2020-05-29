@@ -61,6 +61,21 @@ func (l *Line) SetErrs(errs chan<- error) Pipeline {
 	return l // allow chaining
 }
 
+// Filter is syntactic sugar around the Filter transformer
+func (l *Line) Filter(fn interface{}) Pipeline {
+	return l.Add(ForEach(fn))
+}
+
+// ForEach is syntactic sugar around the ForEach transformer
+func (l *Line) ForEach(fn interface{}) Pipeline {
+	return l.Add(ForEach(fn))
+}
+
+// Map is syntactic sugar around the ForEach transformer
+func (l *Line) Map(fn interface{}) Pipeline {
+	return l.Add(ForEach(fn))
+}
+
 // New creates a new pipeline from the built-in line package.
 func New() Pipeline {
 	return &Line{p: Stdin, c: Consumer}

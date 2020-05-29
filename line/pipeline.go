@@ -23,6 +23,9 @@ type Pipeline interface {
 	SetP(Pfunc) Pipeline
 	SetPContext(PfuncContext) Pipeline
 	Add(...Tfunc) Pipeline
+	Filter(interface{}) Pipeline
+	ForEach(interface{}) Pipeline
+	Map(interface{}) Pipeline
 	SetC(Cfunc) Pipeline
 	SetErrs(chan<- error) Pipeline
 	Run() error
