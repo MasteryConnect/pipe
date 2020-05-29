@@ -84,6 +84,27 @@ line.New().SetP(func(out chan<- interface{}, errs chan<- error) {
 
 ```
 
+To take this a step further, you can use some syntactic sugar to make this much more readable.
+
+```golang
+line.New().SetP(func(out chan<- interface{}, errs chan<- error) {
+  out <- bytes.NewBufferString("Hello World")
+}).Map(func(msg *bytes.Buffer) string {
+  return strings.ToUpper(msg.String())
+}).ForEach(func(msg string) {
+  fmt.Println(msg)
+}).Run()
+
+// output: HELLO WORLD
+
+```
+
+It is recommended what you only use Map, ForEach, and Filter funcs with arg types other than interface{}
+if you control the incoming message types explicitly.  Any mismatch between the message type coming in
+and the type defined in the callback func will result in a panic. if you don't know or have strong confidence
+in the source of the messages coming in to these callback funcs, it would be safest to use interface{}
+as the arg type and do the type assertion explicitly as this will allow you to handle any type mismatches.
+
 ## using pipe/line with unix pipes
 
 Here is a basic script to count lines of input. Since the producer is not set, STDIN is used.
