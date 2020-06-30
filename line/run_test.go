@@ -1,14 +1,34 @@
 package line
 
 import (
+	"context"
 	"crypto/rand"
 	"testing"
 	"time"
 )
 
+// Test to make sure that the context from RunContext gets used in the
+// producer.
+func TestRunContext(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Millisecond)
+	defer cancel() // should already be cancelled by the timeout
+
+	p := New().SetPContext(func(ctx context.Context, out chan<- interface{}, errs chan<- error) {
+		for {
+			select {
+			case <-ctx.Done():
+				return // context was cancelled so return
+			case <-time.Tick(1 * time.Millisecond):
+				out <- nil
+			}
+		}
+	})
+	p.RunContext(ctx)
+}
+
 func lotsOfWork(in <-chan interface{}, out chan<- interface{}, errs chan<- error) {
 	for msg := range in {
-		time.Sleep(1 * time.Microsecond)
+		time.Sleep(10 * time.Microsecond)
 		out <- msg // passthrough
 	}
 }
