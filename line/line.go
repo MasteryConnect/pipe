@@ -77,6 +77,16 @@ func (l *Line) Map(fn interface{}) Pipeline {
 }
 
 // New creates a new pipeline from the built-in line package.
-func New() Pipeline {
-	return &Line{p: Stdin, c: Consumer}
+func New(in ...<-chan interface{}) Pipeline {
+	p := Stdin
+
+	// if we got an "in" channel, use it as the producer
+	if len(in) > 0 {
+		p = func(out chan<- interface{}, errs chan<- error) {
+			for m := range in[0] {
+				out <- m
+			}
+		}
+	}
+	return &Line{p: p, c: Consumer}
 }

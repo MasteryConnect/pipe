@@ -8,6 +8,17 @@ import (
 	l "github.com/MasteryConnect/pipe/line"
 )
 
+func ExamplePipeline_new_w_chan() {
+	out := make(chan interface{}, 1)
+	out <- bytes.NewBufferString("foo")
+	close(out)
+
+	l.New(out).
+		Add(l.Stdout).
+		Run()
+	// Output: foo
+}
+
 func ExamplePipeline_setP() {
 	l.New().
 		SetP(func(out chan<- interface{}, errs chan<- error) {
