@@ -2,18 +2,19 @@ package line_test
 
 import (
 	"fmt"
+	"sync/atomic"
 
 	l "github.com/MasteryConnect/pipe/line"
 )
 
 func ExampleMany() {
-	spinupCnt := 0
+	spinupCnt := uint32(0)
 
 	l.New().
 		Add(
 			l.Many(func(in <-chan interface{}, out chan<- interface{}, errs chan<- error) {
 				// there are two of these running concurrently
-				spinupCnt++
+				atomic.AddUint32(&spinupCnt, 1)
 				for m := range in {
 					out <- m // passthrough
 				}
