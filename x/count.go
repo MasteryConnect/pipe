@@ -39,37 +39,38 @@ func (c Count) T(in <-chan interface{}, out chan<- interface{}, errs chan<- erro
 
 // Use will count up the messages and pass them on.
 func (c *Count) Use(in <-chan interface{}, out chan<- interface{}, errs chan<- error) {
-	if c.Mul == 0 {
-		c.Mul = 1
-	}
-	if c.Mod == 0 {
-		c.Mod = 1
+	mod := int64(1)
+	if c.Mod > 0 {
+		mod = c.Mod
 	}
 
 	for msg := range in {
 		atomic.AddInt64(&c.cnt, 1)
 		if c.Live {
-			c.print("\r")
+			c.print(mod, "\r")
 		}
 
 		out <- msg
 	}
 
-	c.Mod = 1 // ensure we print the last value accurately
-	c.print("\n")
+	// use mod = 1 to ensure we print the last value accurately
+	c.print(1, "\n")
 }
 
 // Val returns the value of the counter.
 func (c *Count) Val() int64 {
+	if c.Mul == 0 {
+		return atomic.LoadInt64(&c.cnt)
+	}
 	return atomic.LoadInt64(&c.cnt) * c.Mul
 }
 
-func (c *Count) print(tail string) {
+func (c *Count) print(mod int64, tail string) {
 	if c.Silent {
 		return
 	}
 	v := c.Val()
-	if v%c.Mod == 0 {
+	if v%mod == 0 {
 		if c.Raw {
 			fmt.Printf("%d"+tail, v)
 		} else {
