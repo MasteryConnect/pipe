@@ -8,11 +8,18 @@ package line
 
 import "sync"
 
+// tfuncEnum holds either a Tfunc or a TfuncContext
+// and can be in a slice as either one
+type tfuncEnum struct {
+	Tfunc
+	TfuncContext
+}
+
 // Line is the order of the steps in the pipe to make a pipeline.
 type Line struct {
 	p        Pfunc
 	pContext PfuncContext
-	t        []Tfunc
+	t        []tfuncEnum
 	c        Cfunc
 
 	errs   chan<- error
@@ -39,7 +46,19 @@ func (l *Line) SetPContext(f PfuncContext) Pipeline {
 // Add will add a transformer to the pipeline.
 func (l *Line) Add(f ...Tfunc) Pipeline {
 	if f != nil {
-		l.t = append(l.t, f...)
+		for _, fn := range f {
+			l.t = append(l.t, tfuncEnum{Tfunc: fn})
+		}
+	}
+	return l // allow chaining
+}
+
+// AddContext is like Add but with a context.Context
+func (l *Line) AddContext(f ...TfuncContext) Pipeline {
+	if f != nil {
+		for _, fn := range f {
+			l.t = append(l.t, tfuncEnum{TfuncContext: fn})
+		}
 	}
 	return l // allow chaining
 }

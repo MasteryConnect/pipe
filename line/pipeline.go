@@ -11,6 +11,9 @@ type PfuncContext func(context.Context, chan<- interface{}, chan<- error)
 // Tfunc is the function signature for a transformer func.
 type Tfunc func(<-chan interface{}, chan<- interface{}, chan<- error)
 
+// TfuncContext is a Tfunc but one that takes a context.Context
+type TfuncContext func(context.Context, <-chan interface{}, chan<- interface{}, chan<- error)
+
 // Cfunc is the function signature for a Consumer jfunc.
 type Cfunc func(<-chan interface{}, chan<- error)
 
@@ -23,6 +26,7 @@ type Pipeline interface {
 	SetP(Pfunc) Pipeline
 	SetPContext(PfuncContext) Pipeline
 	Add(...Tfunc) Pipeline
+	AddContext(...TfuncContext) Pipeline
 	Filter(interface{}) Pipeline
 	ForEach(interface{}) Pipeline
 	Map(interface{}) Pipeline

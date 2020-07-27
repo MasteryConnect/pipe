@@ -34,7 +34,13 @@ func (l *Line) RunContext(ctx context.Context) error {
 	for _, t := range l.t {
 		in = out
 		out = make(chan interface{})
-		go spinUpTransformers(t, 1, in, out, errs)
+
+		// choose the context version first if exists
+		if t.TfuncContext != nil {
+			go spinUpTransformersContext(ctx, t.TfuncContext, 1, in, out, errs)
+		} else if t.Tfunc != nil {
+			go spinUpTransformers(t.Tfunc, 1, in, out, errs)
+		}
 	}
 
 	l.c(out, errs)
@@ -83,6 +89,24 @@ func spinUpTransformers(t Tfunc, concurrency int, in chan interface{}, out chan 
 		wg.Wait()
 	} else {
 		t(in, out, errs)
+	}
+}
+
+func spinUpTransformersContext(ctx context.Context, t TfuncContext, concurrency int, in chan interface{}, out chan interface{}, errs chan<- error) {
+	defer safeClose(out)
+
+	if concurrency > 1 {
+		var wg sync.WaitGroup
+		wg.Add(concurrency)
+		for n := 0; n < concurrency; n++ {
+			go func() {
+				defer wg.Done()
+				t(ctx, in, out, errs)
+			}()
+		}
+		wg.Wait()
+	} else {
+		t(ctx, in, out, errs)
 	}
 }
 
