@@ -1,6 +1,7 @@
 package line_test
 
 import (
+	"context"
 	"testing"
 
 	"github.com/MasteryConnect/pipe/line"
@@ -12,6 +13,8 @@ type foo struct {
 }
 
 func TestMap(t *testing.T) {
+	ctx := context.Background()
+
 	check := func(fn, want interface{}) {
 		in := make(chan interface{}, 1)
 		out := make(chan interface{}, 1)
@@ -21,7 +24,7 @@ func TestMap(t *testing.T) {
 		defer close(errs)
 
 		in <- want
-		go line.Map(fn)(in, out, errs)
+		go line.Map(fn)(ctx, in, out, errs)
 		got := <-out
 
 		if got != want {
@@ -59,6 +62,12 @@ func TestMap(t *testing.T) {
 		}, &foo{42, "bar"})
 	})
 
+	t.Run("with context", func(t *testing.T) {
+		check(func(ctx context.Context, msg *foo) (*foo, error) {
+			return msg, nil
+		}, &foo{42, "bar"})
+	})
+
 	t.Run("type mismatch", func(t *testing.T) {
 		defer func() {
 			if r := recover(); r == nil {
@@ -80,7 +89,7 @@ func TestMap(t *testing.T) {
 		defer close(errs)
 
 		in <- want
-		line.Map(fn)(in, out, errs)
+		line.Map(fn)(ctx, in, out, errs)
 	})
 
 	t.Run("wrong shape", func(t *testing.T) {
