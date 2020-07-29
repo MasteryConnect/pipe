@@ -63,7 +63,10 @@ func TestMap(t *testing.T) {
 	})
 
 	t.Run("with context", func(t *testing.T) {
-		check(func(ctx context.Context, msg *foo) (*foo, error) {
+		check(func(localctx context.Context, msg *foo) (*foo, error) {
+			if ctx != localctx {
+				t.Fail()
+			}
 			return msg, nil
 		}, &foo{42, "bar"})
 	})
@@ -100,6 +103,18 @@ func TestMap(t *testing.T) {
 		}()
 
 		line.Map(func(msg, msg2 int) (int, error) {
+			return msg, nil
+		})
+	})
+
+	t.Run("too many args", func(t *testing.T) {
+		defer func() {
+			if r := recover(); r == nil {
+				t.Error("want panic but didn't happen")
+			}
+		}()
+
+		line.Map(func(lctx context.Context, msg, msg2 int) (int, error) {
 			return msg, nil
 		})
 	})
