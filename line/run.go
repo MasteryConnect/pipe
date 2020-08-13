@@ -9,7 +9,7 @@ import (
 
 // Run runs the whole pipeline.
 func (l *Line) Run() error {
-	return l.RunContext(nil)
+	return l.RunContext(context.Background())
 }
 
 // RunContext runs the whole pipeline with context.Context.
@@ -61,17 +61,14 @@ func (l *Line) RunContext(ctx context.Context) error {
 // if p is nil, then the produer is overridden and the GetIn() must be used
 // to produce messages. The returned channel also must be closed to end the pipeline.
 func (l *Line) spinUpProducer(ctx context.Context, out chan interface{}, errs chan<- error) {
-	if ctx != nil {
-		if l.pContext != nil {
-			defer safeClose(out)
-			l.pContext(ctx, out, errs)
-		}
-	} else {
-		if l.p != nil {
-			defer safeClose(out)
-			l.p(out, errs)
-		}
+	defer safeClose(out)
+
+	if ctx != nil && l.pContext != nil {
+		l.pContext(ctx, out, errs)
+		return
 	}
+
+	l.p(out, errs)
 }
 
 func spinUpTransformers(t Tfunc, concurrency int, in chan interface{}, out chan interface{}, errs chan<- error) {
