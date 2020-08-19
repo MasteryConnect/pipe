@@ -2,6 +2,7 @@ package line_test
 
 import (
 	"context"
+	"errors"
 	"testing"
 
 	"github.com/MasteryConnect/pipe/line"
@@ -15,20 +16,60 @@ type foo struct {
 func TestMap(t *testing.T) {
 	ctx := context.Background()
 
-	check := func(fn, want interface{}) {
-		in := make(chan interface{}, 1)
-		out := make(chan interface{}, 1)
-		errs := make(chan error, 1)
-		defer close(in)
+	run := func(in <-chan interface{}, fn interface{}) (chan interface{}, chan error) {
+		out := make(chan interface{}, 10)
+		errs := make(chan error, 10)
 		defer close(out)
 		defer close(errs)
 
+		line.Map(fn)(ctx, in, out, errs)
+
+		return out, errs
+	}
+
+	check := func(fn, want interface{}) {
+		in := make(chan interface{}, 1)
 		in <- want
-		go line.Map(fn)(ctx, in, out, errs)
+		close(in)
+
+		out, errs := run(in, fn)
 		got := <-out
 
 		if got != want {
 			t.Errorf("want %v got %v", want, got)
+		}
+		if len(errs) > 0 {
+			t.Errorf("got errs %v", <-errs)
+		}
+	}
+
+	checkForErr := func(fn interface{}) {
+		in := make(chan interface{}, 1)
+		in <- struct{}{}
+		close(in)
+
+		out, errs := run(in, fn)
+
+		if len(out) != 0 {
+			t.Errorf("want 0 got %v", len(out))
+		}
+		if len(errs) != 1 {
+			t.Errorf("want 1 got %v", len(errs))
+		}
+	}
+
+	checkForNone := func(fn interface{}) {
+		in := make(chan interface{}, 1)
+		in <- struct{}{}
+		close(in)
+
+		out, errs := run(in, fn)
+
+		if len(out) != 0 {
+			t.Errorf("want 0 got %v", len(out))
+		}
+		if len(errs) != 0 {
+			t.Errorf("want 0 got %v", len(errs))
 		}
 	}
 
@@ -60,6 +101,22 @@ func TestMap(t *testing.T) {
 		check(func(msg *foo) (*foo, error) {
 			return msg, nil
 		}, &foo{42, "bar"})
+	})
+
+	t.Run("pass err on", func(t *testing.T) {
+		checkForErr(func(msg interface{}) (interface{}, error) {
+			return nil, errors.New("foo")
+		})
+	})
+
+	t.Run("filter out nils", func(t *testing.T) {
+		checkForNone(func(msg interface{}) (interface{}, error) {
+			return nil, nil
+		})
+
+		checkForNone(func(msg interface{}) interface{} {
+			return nil
+		})
 	})
 
 	t.Run("with context", func(t *testing.T) {
