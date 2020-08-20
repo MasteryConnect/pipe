@@ -9,7 +9,7 @@ and start your own goroutines.
 # getting the library
 
 ```bash
-go get github.com/MasteryConnect/pipe
+go get github.com/MasteryConnect/pipe/line
 ```
 
 # examples
@@ -129,4 +129,36 @@ func main() {
 run with
 ```bash
 echo -e "foo\nbar" | go run foo.go
+```
+
+## syntactic sugar (Map,Filter,ForEach)
+
+There are three sugar functions that can help with readability.
+
+* Map
+* Filter
+* ForEach
+
+These can be used directly on the pipeline. They are wrappers to the same func so they all behave the same way.
+They can take a few different function signature shapes. The type 'interface{}' being used in the examples is a
+placeholder for any type you want to use. The Map func does a type assertion to make the message
+match the type in the func signature. Just like a type assertion like `foo := bar.(string)`, if the type
+assertion fails, it panics so make sure the right type is being passed.
+
+```golang
+// only gets the messasge and the message will be automaticaly passed on after this function is done.
+func(m interface{}) {}
+
+// same as above but with a ctx when the pipeline is run with RunContext()
+// The ctx can be added to any of these signatures.
+func(ctx context.Context, m T) {}
+
+// will send the returned error down the errs chan if not nil
+func(m interface{}) error {}
+
+// will send the returned value down stream. A nil value doesn't send anything downstream
+func(m interface{}) interface{} {}
+
+// a combination of the above two signatures
+func(m interface{}) (interface{}, err) {}
 ```
