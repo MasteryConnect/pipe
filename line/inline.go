@@ -1,5 +1,7 @@
 package line
 
+import "context"
+
 // InlineTfunc is the function signature for a transformer func.
 // The idea is to make writing an anonymous func right inline
 // with the definition of the pipeline easier. It also provides
@@ -7,6 +9,9 @@ package line
 // single input single output func. That makes testing a lot easier
 // as well.
 type InlineTfunc func(interface{}) (interface{}, error)
+
+// InlineTfuncContext is InlineTfunc with Context support
+type InlineTfuncContext func(context.Context, interface{}) (interface{}, error)
 
 // Inline wraps an InlineTfunc and returns a Tfunc.
 // Most of the time, transformers will just range over
@@ -35,4 +40,27 @@ func Inline(it InlineTfunc) Tfunc {
 // I is a convenience wrapper around Inline
 func I(it InlineTfunc) Tfunc {
 	return Inline(it)
+}
+
+// InlineContext wraps an InlineTfunc and returns a Tfunc.
+func InlineContext(it InlineTfuncContext) TfuncContext {
+	return func(ctx context.Context, in <-chan interface{}, out chan<- interface{}, errs chan<- error) {
+		for msg := range in {
+			select {
+
+			case <-ctx.Done():
+				return // stop if context is done
+
+			default:
+				newMsg, err := it(ctx, msg)
+				if err != nil {
+					errs <- err
+				}
+				if newMsg != nil {
+					out <- newMsg
+				}
+
+			}
+		}
+	}
 }
